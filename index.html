@@ -1,11 +1,706 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ImageFuse PDF</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImageFuse PDF | Chrome Extension</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand: #d94444;
+      --brand-dark: #b23535;
+      --brand-soft: #ffe5e5;
+      --ink: #0f172a;
+      --muted: #596075;
+      --bg: #f8f7fb;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --radius: 16px;
+      --shadow: 0 20px 70px rgba(15, 23, 42, 0.08);
+      --gradient: linear-gradient(135deg, rgba(217, 68, 68, 0.16), rgba(217, 68, 68, 0.04));
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 460px;
+      height: 460px;
+      background: radial-gradient(circle, rgba(217, 68, 68, 0.12), transparent 60%);
+      filter: blur(10px);
+      z-index: -1;
+      opacity: 0.7;
+    }
+
+    body::before {
+      top: -140px;
+      right: -160px;
+    }
+
+    body::after {
+      bottom: -220px;
+      left: -120px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      background: rgba(248, 247, 251, 0.85);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+    }
+
+    .nav {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--brand), #ff7c7c);
+      color: #fff;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 10px 30px rgba(217, 68, 68, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      font-weight: 600;
+      color: var(--muted);
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-links a:hover {
+      color: var(--brand);
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 70px 20px 90px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 48px;
+      align-items: center;
+      padding: 40px 0 20px;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: -50px -80px auto auto;
+      width: 60%;
+      height: 65%;
+      background: linear-gradient(145deg, rgba(217, 68, 68, 0.18), rgba(255, 255, 255, 0));
+      filter: blur(60px);
+      opacity: 0.9;
+      z-index: 0;
+    }
+
+    .hero h1 {
+      font-size: clamp(34px, 5vw, 46px);
+      margin: 0 0 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      color: var(--muted);
+      margin: 0 0 28px;
+      font-size: 17px;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(217, 68, 68, 0.14);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 13px;
+      backdrop-filter: blur(8px);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(217, 68, 68, 0.12);
+      color: var(--brand);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(217, 68, 68, 0.15);
+    }
+
+    .cta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .hero-meta {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .meta-card {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(217, 68, 68, 0.14);
+      border-radius: 14px;
+      padding: 12px 14px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .meta-card strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .meta-card span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), #ff7c7c);
+      color: #fff;
+      padding: 13px 18px;
+      border-radius: 14px;
+      font-weight: 800;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 16px 40px rgba(217, 68, 68, 0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      letter-spacing: -0.01em;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 45px rgba(217, 68, 68, 0.35);
+    }
+
+    .btn-outline {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      font-weight: 700;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.6);
+      transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+
+    .hero-graphic {
+      position: relative;
+      background: linear-gradient(145deg, #ffffff, #f3f4f9);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-height: 320px;
+      isolation: isolate;
+    }
+
+    .hero-graphic::before,
+    .hero-graphic::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(40px);
+      opacity: 0.35;
+      z-index: 0;
+    }
+
+    .hero-graphic::before {
+      width: 200px;
+      height: 200px;
+      background: rgba(217, 68, 68, 0.18);
+      top: -60px;
+      right: -40px;
+    }
+
+    .hero-graphic::after {
+      width: 160px;
+      height: 160px;
+      background: rgba(255, 255, 255, 0.9);
+      bottom: -50px;
+      left: -20px;
+    }
+
+    .hero-graphic .orbit {
+      position: absolute;
+      inset: 12px;
+      border: 1px dashed rgba(15, 23, 42, 0.06);
+      border-radius: 18px;
+      z-index: 1;
+    }
+
+    .hero-graphic .badge {
+      position: relative;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(217, 68, 68, 0.08);
+      border-radius: 14px;
+      font-weight: 700;
+      color: var(--brand);
+      border: 1px solid rgba(217, 68, 68, 0.2);
+      margin-bottom: 14px;
+    }
+
+    .hero-graphic .tagline {
+      position: relative;
+      z-index: 2;
+      font-weight: 700;
+      font-size: 20px;
+      margin: 0 0 6px;
+    }
+
+    .hero-graphic .blurb {
+      position: relative;
+      z-index: 2;
+      color: var(--muted);
+      margin: 0 0 20px;
+    }
+
+    .hero-tiles {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      display: grid;
+      gap: 6px;
+    }
+
+    .tile strong {
+      font-size: 15px;
+    }
+
+    .tile span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    section {
+      margin-top: 90px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.01em;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(217, 68, 68, 0.08), transparent 40%);
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(217, 68, 68, 0.16), rgba(217, 68, 68, 0.06));
+      color: var(--brand);
+      font-weight: 800;
+      margin-bottom: 12px;
+      border: 1px solid rgba(217, 68, 68, 0.2);
+      box-shadow: 0 10px 25px rgba(217, 68, 68, 0.18);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .faq {
+      display: grid;
+      gap: 12px;
+    }
+
+    details {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px 16px;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 700;
+      outline: none;
+    }
+
+    details p {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    footer {
+      margin-top: 110px;
+      border-top: 1px solid var(--border);
+      padding: 26px 20px 40px;
+      background: #fff;
+    }
+
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .nav {
+        padding: 12px 16px;
+      }
+      .container {
+        padding: 48px 16px 70px;
+      }
+      .hero {
+        gap: 26px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hello World!</h1>
-  <p>ImageFuse PDF Chrome extension!</p>
+  <header>
+    <div class="nav">
+      <div class="nav-left">
+        <div class="logo">PDF</div>
+        <span>ImageFuse PDF</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+        <a href="#privacy">Privacy</a>
+      </div>
+      <a class="btn-primary" href="#cta">Add to Chrome</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div>
+        <div class="pill">Modern PDF creation from images</div>
+        <h1>Fuse screenshots, photos, and visuals into share-ready PDFs.</h1>
+        <div class="chip-row">
+          <span class="chip">No accounts or watermarks</span>
+          <span class="chip">Local processing</span>
+          <span class="chip">Supports JPG, PNG, WebP, HEIC</span>
+        </div>
+        <p>ImageFuse PDF is a Chrome extension that captures images from your computer or the page you're browsing and turns them into clean, professional PDFs—without accounts, watermarks, or friction.</p>
+        <div class="cta" id="cta">
+          <a class="btn-primary" href="https://chrome.google.com/webstore" target="_blank" rel="noopener">Install ImageFuse PDF</a>
+          <a class="btn-outline" href="#how">See how it works</a>
+        </div>
+        <div class="hero-meta">
+          <div class="meta-card">
+            <strong>Drop or capture</strong>
+            <span>Upload from your desktop or pick images straight from the page.</span>
+          </div>
+          <div class="meta-card">
+            <strong>Layout presets</strong>
+            <span>Portrait, landscape, and paper sizes that keep exports consistent.</span>
+          </div>
+          <div class="meta-card">
+            <strong>Offline ready</strong>
+            <span>Everything runs in-browser, so you stay productive anywhere.</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-graphic" aria-hidden="true">
+        <div class="orbit"></div>
+        <div class="badge">⚡ Fast, polished PDFs</div>
+        <p class="tagline">Drop images. Choose layout. Export instantly.</p>
+        <p class="blurb">A minimal workflow that feels native to Chrome. Perfect for reports, client deliverables, or archiving inspiration.</p>
+        <div class="hero-tiles">
+          <div class="tile">
+            <strong>Multi-source capture</strong>
+            <span>Upload local files or pick images directly from any open tab.</span>
+          </div>
+          <div class="tile">
+            <strong>Layout control</strong>
+            <span>Switch orientation, paper size, and margins to match your output.</span>
+          </div>
+          <div class="tile">
+            <strong>Respectful by design</strong>
+            <span>Everything stays on your device—no uploads, no watermarks.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="section-header">
+        <div>
+          <p class="pill" style="margin-bottom:10px;">Features</p>
+          <h2>Built for speed, clarity, and trust.</h2>
+        </div>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="badge-icon">1</div>
+          <h3>Add images from anywhere</h3>
+          <p>Mix local uploads with images pulled from the page you're browsing. JPG, PNG, WebP, HEIC, and more are supported.</p>
+        </div>
+        <div class="card">
+          <div class="badge-icon">2</div>
+          <h3>Flexible PDF layouts</h3>
+          <p>Choose portrait or landscape, pick the paper size, and set margins so every PDF looks intentional.</p>
+        </div>
+        <div class="card">
+          <div class="badge-icon">3</div>
+          <h3>Private by default</h3>
+          <p>Processing happens locally in Chrome. Your images and generated PDFs never leave your device.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="section-header">
+        <div>
+          <p class="pill" style="margin-bottom:10px;">How it works</p>
+          <h2>From images to PDF in three steps.</h2>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="card">
+          <div class="badge-icon">①</div>
+          <h3>Add images</h3>
+          <p>Drag and drop files, select them from your computer, or pull images from the page you're viewing.</p>
+        </div>
+        <div class="card">
+          <div class="badge-icon">②</div>
+          <h3>Set your layout</h3>
+          <p>Pick orientation, paper size, and margins to match your needs—no guessing or hidden settings.</p>
+        </div>
+        <div class="card">
+          <div class="badge-icon">③</div>
+          <h3>Generate & share</h3>
+          <p>Export a clean, watermark-free PDF instantly. Save it, send it, or archive it for later.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-header">
+        <div>
+          <p class="pill" style="margin-bottom:10px;">Highlights</p>
+          <h2>Made for designers, marketers, and anyone working with visuals.</h2>
+        </div>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <h3>Modern format support</h3>
+          <p>JPG, JPEG, PNG, WebP, and HEIC files are handled seamlessly. Perfect for screenshots, exports, and photos.</p>
+        </div>
+        <div class="card">
+          <h3>Works offline</h3>
+          <p>Once installed, ImageFuse PDF runs entirely in your browser—ideal for flights, client sites, or secure environments.</p>
+        </div>
+        <div class="card">
+          <h3>Zero friction</h3>
+          <p>No sign-ups, no tracking pixels, and no watermark surprises. Just a reliable PDF creator.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="section-header">
+        <div>
+          <p class="pill" style="margin-bottom:10px;">FAQ</p>
+          <h2>Answers before you install.</h2>
+        </div>
+      </div>
+      <div class="faq">
+        <details open>
+          <summary>Do you compress or watermark my PDF?</summary>
+          <p>Never. The export preserves your images cleanly with no watermarks or forced compression.</p>
+        </details>
+        <details>
+          <summary>Can I capture images from the page I'm on?</summary>
+          <p>Yes. Use the in-page picker to grab visuals from any site, then combine them with local files.</p>
+        </details>
+        <details>
+          <summary>Which browsers are supported?</summary>
+          <p>ImageFuse PDF is built for Chrome and Chromium-based browsers that support the Chrome Web Store.</p>
+        </details>
+        <details>
+          <summary>Does it work offline?</summary>
+          <p>Once installed, the extension can generate PDFs without an internet connection.</p>
+        </details>
+      </div>
+    </section>
+
+    <section id="privacy">
+      <div class="section-header">
+        <div>
+          <p class="pill" style="margin-bottom:10px;">Privacy</p>
+          <h2>Privacy policy</h2>
+        </div>
+      </div>
+      <div class="card">
+        <p><strong>Local processing:</strong> All PDF creation happens locally in your browser. Images and generated PDFs are not transmitted to external servers.</p>
+        <p><strong>No tracking:</strong> ImageFuse PDF does not collect analytics, personal data, or browsing history.</p>
+        <p><strong>Permissions:</strong> The extension requests only the access required to capture images from the page and to save the generated PDF file.</p>
+        <p><strong>Support:</strong> If you have privacy questions, contact the developer via the Chrome Web Store listing.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="logo">PDF</div>
+        <span>ImageFuse PDF — convert images to polished PDFs.</span>
+      </div>
+      <div class="cta" style="gap:10px;">
+        <a class="btn-primary" href="https://chrome.google.com/webstore" target="_blank" rel="noopener">Install now</a>
+        <a class="btn-outline" href="#features">Back to top</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
